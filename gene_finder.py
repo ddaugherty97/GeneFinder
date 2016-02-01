@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-YOUR HEADER COMMENT HERE
+THIS PROGRAM ANALYZES A DNA SEQUENCE AND OUTPUTS SEGMENTS OF DNA THAT ARE LIKELY TO BE PROTEIN CODONS FOR SALMONELLA 
 
-@author: YOUR NAME HERE
+@author: DANIEL DAUGHERTY
 
 """
 
@@ -25,13 +25,29 @@ def get_complement(nucleotide):
 
         nucleotide: a nucleotide (A, C, G, or T) represented as a string
         returns: the complementary nucleotide
+
+        I believe these tests were sufficient.  They test to make sure that the function will
+        return the complimentary nucleotide
+
     >>> get_complement('A')
     'T'
     >>> get_complement('C')
     'G'
+    >>> get_complement('G')
+    'C'
     """
-    # TODO: implement this
-    pass
+
+    if nucleotide == 'A':
+        return 'T'
+    elif nucleotide == 'C':
+        return 'G'
+    elif nucleotide == 'T':
+        return 'A'
+    elif nucleotide == 'G':
+        return 'C'
+    else:
+        print "not a nucletide"
+        return none
 
 
 def get_reverse_complement(dna):
@@ -40,13 +56,21 @@ def get_reverse_complement(dna):
 
         dna: a DNA sequence represented as a string
         returns: the reverse complementary DNA sequence represented as a string
+
+        I believe these tests were sufficient.  They both demonstrate that the code can
+        successfully return the reverse compliment of a dna sequence
+
     >>> get_reverse_complement("ATGCCCGCTTT")
     'AAAGCGGGCAT'
     >>> get_reverse_complement("CCGCGTTCA")
     'TGAACGCGG'
     """
-    # TODO: implement this
-    pass
+    new_dna = ""
+    for x in range(-1,-len(dna)-1,-1):
+        new_dna += get_complement(dna[x])
+
+    return new_dna
+
 
 
 def rest_of_ORF(dna):
@@ -57,13 +81,25 @@ def rest_of_ORF(dna):
 
         dna: a DNA sequence
         returns: the open reading frame represented as a string
+
+        I added one more test that included the TAA stop codon to make sure all stop codons
+        work and also that the function works when there is no stop codon
+
     >>> rest_of_ORF("ATGTGAA")
     'ATG'
     >>> rest_of_ORF("ATGAGATAGG")
     'ATGAGA'
+    >>> rest_of_ORF("ATGGAATAA")
+    'ATGGAA'
+    >>> rest_of_ORF("ATGTATATA")
+    'ATGTATATA'
     """
-    # TODO: implement this
-    pass
+
+    for x in range(3,len(dna), 3):
+        if dna[x:(x+3)] == 'TGA' or dna[x:(x+3)] == 'TAG' or dna[x:(x+3)] == 'TAA':
+            return dna[:x]
+    return dna
+
 
 
 def find_all_ORFs_oneframe(dna):
@@ -76,11 +112,25 @@ def find_all_ORFs_oneframe(dna):
 
         dna: a DNA sequence
         returns: a list of non-nested ORFs
+
+        I added one more test to make sure that the code works when there is no trail after a start sequence
+
     >>> find_all_ORFs_oneframe("ATGCATGAATGTAGATAGATGTGCCC")
     ['ATGCATGAATGTAGA', 'ATGTGCCC']
+    >>> find_all_ORFs_oneframe("ATGGTATAGATG")
+    ['ATGGTA', 'ATG']
     """
-    # TODO: implement this
-    pass
+    dna_list = []
+    i = 0
+    while i < len(dna):
+        if dna[i:i+3] == 'ATG':
+            dna_list.append(rest_of_ORF(dna[i:]))
+            i+= len(rest_of_ORF(dna[i:]))
+        else:
+            i+=3
+
+    return dna_list
+
 
 
 def find_all_ORFs(dna):
@@ -96,8 +146,13 @@ def find_all_ORFs(dna):
     >>> find_all_ORFs("ATGCATGAATGTAG")
     ['ATGCATGAATGTAG', 'ATGAATGTAG', 'ATG']
     """
-    # TODO: implement this
-    pass
+
+    dna_list = []
+    for i in range(0,3):
+        dna_list += find_all_ORFs_oneframe(dna[i:])
+
+    return dna_list    
+
 
 
 def find_all_ORFs_both_strands(dna):
@@ -109,8 +164,13 @@ def find_all_ORFs_both_strands(dna):
     >>> find_all_ORFs_both_strands("ATGCGAATGTAGCATCAAA")
     ['ATGCGAATG', 'ATGCTACATTCGCAT']
     """
-    # TODO: implement this
-    pass
+
+    dna_list = []
+    dna_list += find_all_ORFs(dna)
+    new_dna = get_reverse_complement(dna)
+    dna_list += find_all_ORFs(new_dna)
+
+    return dna_list
 
 
 def longest_ORF(dna):
@@ -163,4 +223,5 @@ def gene_finder(dna):
 
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    #doctest.testmod()
+    doctest.run_docstring_examples(find_all_ORFs_both_strands, globals())

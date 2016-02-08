@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-THIS PROGRAM ANALYZES A DNA SEQUENCE AND OUTPUTS SEGMENTS OF DNA THAT ARE LIKELY TO BE PROTEIN CODONS FOR SALMONELLA 
+THIS PROGRAM ANALYZES A DNA SEQUENCE AND OUTPUTS THE CORRESPONDING AMINO ACIDS THAT ARE LIKELY TO BE PROTEIN CODONS FOR DISEASES SUCH AS TYPHOID FEVER AND SALMONELLA
 
 @author: DANIEL DAUGHERTY
 
@@ -176,11 +176,22 @@ def find_all_ORFs_both_strands(dna):
 def longest_ORF(dna):
     """ Finds the longest ORF on both strands of the specified DNA and returns it
         as a string
+
+
     >>> longest_ORF("ATGCGAATGTAGCATCAAA")
     'ATGCTACATTCGCAT'
+
+    >>> longest_ORF("ATGCGAATGTAGCATCAAAATGAGG")
+    'ATGCTACATTCGCAT'
     """
-    # TODO: implement this
-    pass
+
+    dna_list = find_all_ORFs_both_strands(dna)
+    longest = ''
+    for i in range(0, len(dna_list)-1):
+        if len(dna_list[i]) < len(dna_list[i+1]):
+            longest = dna_list[i+1]
+
+    return longest
 
 
 def longest_ORF_noncoding(dna, num_trials):
@@ -190,8 +201,13 @@ def longest_ORF_noncoding(dna, num_trials):
         dna: a DNA sequence
         num_trials: the number of random shuffles
         returns: the maximum length longest ORF """
-    # TODO: implement this
-    pass
+
+
+    shuffled_dna_lengths = []
+    for i in range(0, num_trials):
+        shuffled_dna_lengths.append(len(longest_ORF(shuffle_string(dna))))
+    
+    return max(shuffled_dna_lengths)
 
 
 def coding_strand_to_AA(dna):
@@ -208,9 +224,14 @@ def coding_strand_to_AA(dna):
         >>> coding_strand_to_AA("ATGCCCGCTTT")
         'MPA'
     """
-    # TODO: implement this
-    pass
 
+    aa_sequence = ''
+    for i in range(0, len(dna), 3):
+        codon = dna[i:i+3]
+        if len(codon) == 3:
+            aa_sequence += aa_table[codon]
+
+    return aa_sequence
 
 def gene_finder(dna):
     """ Returns the amino acid sequences that are likely coded by the specified dna
@@ -218,10 +239,21 @@ def gene_finder(dna):
         dna: a DNA sequence
         returns: a list of all amino acid sequences coded by the sequence dna.
     """
-    # TODO: implement this
-    pass
+
+    aa_list = []
+    threshold = longest_ORF_noncoding(dna, 1500)
+    print threshold
+    dna_list = find_all_ORFs_both_strands(dna)
+    for i in range(0, len(dna_list)):
+        if len(dna_list[i]) > threshold:
+            aa_list.append(coding_strand_to_AA(dna_list[i]))
+
+    return aa_list
 
 if __name__ == "__main__":
     import doctest
     #doctest.testmod()
-    doctest.run_docstring_examples(find_all_ORFs_both_strands, globals())
+    #doctest.run_docstring_examples(coding_strand_to_AA, globals())
+    from load import load_seq
+    dna = load_seq("./data/X73525.fa")
+    print gene_finder(dna)
